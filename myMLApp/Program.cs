@@ -94,23 +94,6 @@ class Program
 
     static void LoadReviews()
     {
-
-
-        /*   if (File.Exists(jsonFilePath))
-           {
-               string json = File.ReadAllText(jsonFilePath);
-
-               if (!string.IsNullOrWhiteSpace(json))
-               {
-                   restaurantReviews = JsonSerializer.Deserialize<List<RestaurantReview>>(json);
-               }
-               else
-               {
-                   Console.WriteLine("JSON file is empty, missing, or contains invalid data.");
-               }
-           } 
-        */
-
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
