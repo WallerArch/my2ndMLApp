@@ -15,7 +15,6 @@ class RestaurantReview
 class Program
 {
     static List<RestaurantReview> restaurantReviews = new List<RestaurantReview>();
-    static string jsonFilePath = "restaurantReviews.json";
     static string connectionString = "Data Source=RestaurantReviews.db;Version=3;";
     static void InitializeDatabase()
     {
