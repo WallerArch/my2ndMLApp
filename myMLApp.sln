@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "myMLApp", "myMLApp\myMLApp.csproj", "{A418D63A-E095-44BD-B7FB-4CFE5DDE88DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SentimentModel_ConsoleApp1", "SentimentModel_ConsoleApp1\SentimentModel_ConsoleApp1.csproj", "{263BEB13-0561-4BA8-986B-6FE42BBE4883}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A418D63A-E095-44BD-B7FB-4CFE5DDE88DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A418D63A-E095-44BD-B7FB-4CFE5DDE88DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A418D63A-E095-44BD-B7FB-4CFE5DDE88DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A418D63A-E095-44BD-B7FB-4CFE5DDE88DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{263BEB13-0561-4BA8-986B-6FE42BBE4883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{263BEB13-0561-4BA8-986B-6FE42BBE4883}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{263BEB13-0561-4BA8-986B-6FE42BBE4883}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{263BEB13-0561-4BA8-986B-6FE42BBE4883}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5EF255B3-C397-4056-B47B-39FC23F4993A}
+	EndGlobalSection
+EndGlobal
