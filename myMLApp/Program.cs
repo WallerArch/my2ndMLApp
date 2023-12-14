@@ -1,11 +1,9 @@
-﻿using System.Text.Json;
-using System.Collections.Generic;
-using System.Data.SQLite;
-using MyMLApp; // Make sure to reference your ML model namespace
+﻿using System.Data.SQLite;
+using MyMLApp; // Hämtar in min MLs namespace så den kan användas till bedömningar
 
 class RestaurantReview
 {
-    public int Id { get; set; } // SQLite requires an auto-incrementing integer as the primary key
+    public int Id { get; set; } // Id för varje recension som också skall vara primär-nyckel i databasen
     public string Review { get; set; }
     public string Author { get; set; }
     public string Restaurant { get; set; }
@@ -14,8 +12,12 @@ class RestaurantReview
 
 class Program
 {
+    //Lista som alla recenserioner hanteras i
     static List<RestaurantReview> restaurantReviews = new List<RestaurantReview>();
+    //Variabel för databasen
     static string connectionString = "Data Source=RestaurantReviews.db;Version=3;";
+    
+    //Funktion som startar databasen
     static void InitializeDatabase()
     {
         // Skapar databasen om den inte finns
@@ -31,8 +33,8 @@ class Program
 
             // Skapar tabellen i databasen för recensionerna
             using (SQLiteCommand command = new SQLiteCommand(
-                "CREATE TABLE IF NOT EXISTS Reviews (" +
-                "Id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "CREATE TABLE IF NOT EXISTS Reviews (" + // Detta körs endast som tabellen inte redan finns
+                "Id INTEGER PRIMARY KEY AUTOINCREMENT," + // Primärnyckel som automatiskt för räknar upp för varje ny som skapas
                 "Review TEXT NOT NULL," +
                 "Author TEXT NOT NULL," +
                 "Restaurant TEXT NOT NULL," +
@@ -45,8 +47,8 @@ class Program
     }
     static void Main()
     {
+        //Startar databasen
         InitializeDatabase();
-        LoadReviews();
 
         bool programRuns = true;
 
@@ -61,6 +63,7 @@ class Program
             Console.WriteLine("5. Delete a review");
             Console.WriteLine("6. Exit");
 
+            //Skapar variabel för valet samt konverterar den input-strängen som en integer
             int choice;
             int.TryParse(Console.ReadLine(), out choice);
 
@@ -82,7 +85,7 @@ class Program
                     DeleteReview();
                     break;
                 case 6:
-                    SaveReviews();
+                    SaveReviews(); //När programmet stängs ned sparas aktiv lista till databasen
                     programRuns = false;
                     break;
                 default:
@@ -91,36 +94,7 @@ class Program
         }
     }
 
-    static void LoadReviews()
-    {
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-
-            string query = "SELECT * FROM Reviews";
-            using (SQLiteCommand command = new SQLiteCommand(query, connection))
-            {
-                using (SQLiteDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        RestaurantReview review = new RestaurantReview
-                        {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Review = Convert.ToString(reader["Review"]),
-                            Author = Convert.ToString(reader["Author"]),
-                            Restaurant = Convert.ToString(reader["Restaurant"]),
-                            Sentiment = Convert.ToString(reader["Sentiment"])
-                        };
-
-                        restaurantReviews.Add(review);
-                    }
-                }
-            }
-        }
-
-    }
-
+    //Funktion som sparar alla recensionerna till databasen
     static void SaveReviews()
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -150,8 +124,7 @@ class Program
         }
     }
 
-
-
+    //Funktion som läser ut alla recensionerna från databasen
     static void ReadReviews()
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -168,7 +141,7 @@ class Program
 
                     if (!reader.HasRows)
                     {
-                        Console.WriteLine("\nNo reviews available.");
+                        Console.WriteLine("\nNo reviews available."); //Om databasen är tom skrivs detta ut
                     }
                     else
                     {
@@ -184,7 +157,8 @@ class Program
         Console.WriteLine("\nPress any key to return.");
         Console.ReadKey();
     }
-
+    
+    //Funktion som hämtar ut recensioner för en specifik restaurang
     static void ReadReviewsByRestaurant()
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -201,36 +175,40 @@ class Program
 
                     if (!reader.HasRows)
                     {
-                        Console.WriteLine("\nNo restaurants available.");
+                        Console.WriteLine("\nNo restaurants available."); //Felmeddelande om inga recensioner finns än
                     }
                     else
                     {
+                        //Lista som hanterar restaurangerna
                         List<string> uniqueRestaurants = new List<string>();
 
                         while (reader.Read())
                         {
+                            //Lägger till vardera restaurang som finns i databasen till listan
                             uniqueRestaurants.Add(reader["Restaurant"].ToString());
                         }
 
-                        // Display numbered list of unique restaurants
+                        // Skriver ut numrerad lista med alla restauranger som recenserats
                         for (int i = 0; i < uniqueRestaurants.Count; i++)
                         {
                             Console.WriteLine($"{i + 1}. {uniqueRestaurants[i]}");
                         }
 
-                        // Prompt user to choose a restaurant
+                        // Användaren får här välja en av restaurangerna
                         Console.Write("\nEnter the number of the restaurant to view reviews (or press 'B' to go back): ");
                         string userInput = Console.ReadLine();
 
+                        //Läser input som integer
                         if (int.TryParse(userInput, out int choice) && choice >= 1 && choice <= uniqueRestaurants.Count)
                         {
+                            //Eftersom listan räknar som array måste vi köra -1 så det blir rätt val
                             string chosenRestaurant = uniqueRestaurants[choice - 1];
 
-                            // Get reviews for the chosen restaurant
+                            // Hämtar ut restaurangens recenserioner
                             string reviewsQuery = $"SELECT * FROM Reviews WHERE Restaurant = @Restaurant";
                             using (SQLiteCommand reviewsCommand = new SQLiteCommand(reviewsQuery, connection))
                             {
-                                reviewsCommand.Parameters.AddWithValue("@Restaurant", chosenRestaurant);
+                                reviewsCommand.Parameters.AddWithValue("@Restaurant", chosenRestaurant); //Anger just den valda restaurangen till SQL-frågan
 
                                 using (SQLiteDataReader reviewsReader = reviewsCommand.ExecuteReader())
                                 {
@@ -239,14 +217,14 @@ class Program
 
                                     while (reviewsReader.Read())
                                     {
+                                        //Skriver ut recensioner för vald restaurang
                                         Console.WriteLine($"{reviewsReader["Author"]} says: {reviewsReader["Review"]} - Sentiment: {reviewsReader["Sentiment"]}");
                                     }
                                 }
                             }
                         }
-                        else if (userInput.Equals("B", StringComparison.OrdinalIgnoreCase))
+                        else if (userInput.Equals("B", StringComparison.OrdinalIgnoreCase)) //Om användaren anger B skickas den bakåt i programmet
                         {
-                            // User chose to go back
                             return;
                         }
                         else
@@ -262,6 +240,7 @@ class Program
         Console.ReadKey();
     }
 
+    //Funktion för att hämta ut specifik skribents recensioner
     static void ReadReviewsByAuthor()
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -278,24 +257,23 @@ class Program
 
                     if (!reader.HasRows)
                     {
-                        Console.WriteLine("\nNo authors available.");
+                        Console.WriteLine("\nNo authors available."); //Felmeddelande om ingen recension skrivits än
                     }
                     else
                     {
-                        List<string> uniqueAuthors = new List<string>();
+                        List<string> uniqueAuthors = new List<string>(); //Lista med alla skribenter
 
                         while (reader.Read())
                         {
-                            uniqueAuthors.Add(reader["Author"].ToString());
+                            uniqueAuthors.Add(reader["Author"].ToString()); //Lägger till skribenterna i listan
                         }
 
-                        // Display numbered list of unique authors
+                        // Skriver ut lista med alla skribenter
                         for (int i = 0; i < uniqueAuthors.Count; i++)
                         {
                             Console.WriteLine($"{i + 1}. {uniqueAuthors[i]}");
                         }
 
-                        // Prompt user to choose an author
                         Console.Write("\nEnter the number of the author to view reviews (or press 'B' to go back): ");
                         string userInput = Console.ReadLine();
 
@@ -303,18 +281,18 @@ class Program
                         {
                             string chosenAuthor = uniqueAuthors[choice - 1];
 
-                            // Get reviews for the chosen author
+                            // Hämtar ut skribentens recensioner
                             string reviewsQuery = $"SELECT * FROM Reviews WHERE Author = @Author";
                             using (SQLiteCommand reviewsCommand = new SQLiteCommand(reviewsQuery, connection))
                             {
-                                reviewsCommand.Parameters.AddWithValue("@Author", chosenAuthor);
+                                reviewsCommand.Parameters.AddWithValue("@Author", chosenAuthor); // Anger just den valda skribenten till SQL-frågan
 
                                 using (SQLiteDataReader reviewsReader = reviewsCommand.ExecuteReader())
                                 {
                                     Console.Clear();
                                     Console.WriteLine($"Reviews by {chosenAuthor}:");
 
-                                    while (reviewsReader.Read())
+                                    while (reviewsReader.Read()) // Skriver ut skribentens recensioner
                                     {
                                         Console.WriteLine($"{reviewsReader["Author"]} was at {reviewsReader["Restaurant"]} and says: {reviewsReader["Review"]} - Sentiment: {reviewsReader["Sentiment"]}");
                                     }
@@ -323,8 +301,7 @@ class Program
                         }
                         else if (userInput.Equals("B", StringComparison.OrdinalIgnoreCase))
                         {
-                            // User chose to go back
-                            return;
+                            return; //Om användaren anger B skickas den bakåt i programmet
                         }
                         else
                         {
@@ -339,6 +316,7 @@ class Program
         Console.ReadKey();
     }
 
+    // Funktion för att skriva en ny recension
     static void WriteReview()
     {
         Console.Clear();
@@ -355,10 +333,10 @@ class Program
                 Col0 = userReview
             };
 
-            var result = SentimentModel.Predict(sampleData);
-            var sentiment = result.PredictedLabel == 1 ? "Positive" : "Negative";
+            var result = SentimentModel.Predict(sampleData); // Skickar skribentens recension till min ML för bedömning
+            var sentiment = result.PredictedLabel == 1 ? "Positive" : "Negative"; // Om det är positivt blir svaret "Positive", annars "Negative"
 
-            Console.WriteLine($"\nSentiment Analysis Result: {sentiment}");
+            Console.WriteLine($"\nSentiment Analysis Result: {sentiment}"); // Skriver ut resultatet till skärmen
 
             Console.WriteLine("Your name:");
             string userName = Console.ReadLine();
@@ -369,7 +347,7 @@ class Program
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-
+                // Skickar in det skribenten skrev till databasen
                 string insertQuery = "INSERT INTO Reviews (Review, Author, Restaurant, Sentiment) VALUES (@Review, @Author, @Restaurant, @Sentiment)";
                 using (SQLiteCommand insertCommand = new SQLiteCommand(insertQuery, connection))
                 {
@@ -392,12 +370,14 @@ class Program
         }
     }
 
+    // Funktion för att ta bort en vald recension
     static void DeleteReview()
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
 
+            // Hämtar ut alla recensioner från databasen
             string selectQuery = "SELECT * FROM Reviews";
             using (SQLiteCommand selectCommand = new SQLiteCommand(selectQuery, connection))
             {
@@ -405,6 +385,7 @@ class Program
                 {
                     if (!reader.HasRows)
                     {
+                        // Om databasen är tom skrivs detta ut
                         Console.Clear();
                         Console.WriteLine("No reviews available.\n");
                         Console.WriteLine("Press any key to return.");
@@ -419,14 +400,14 @@ class Program
                 Console.Clear();
                 Console.WriteLine("Delete a restaurant review:");
 
-                List<RestaurantReview> reviewsFromDatabase = new List<RestaurantReview>();
+                List<RestaurantReview> reviewsFromDatabase = new List<RestaurantReview>(); // Lista för att hantera recensionerna
                 using (SQLiteCommand selectCommand = new SQLiteCommand(selectQuery, connection))
                 {
                     using (SQLiteDataReader reader = selectCommand.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            reviewsFromDatabase.Add(new RestaurantReview
+                            reviewsFromDatabase.Add(new RestaurantReview // Lägger alla recensioner i listan
                             {
                                 Id = Convert.ToInt32(reader["Id"]),
                                 Review = reader["Review"].ToString(),
@@ -440,18 +421,21 @@ class Program
 
                 for (int i = 0; i < reviewsFromDatabase.Count; i++)
                 {
+                    // Skriver ut alla recensionerna till en numrerad lista
                     Console.WriteLine($"{i + 1}. {reviewsFromDatabase[i].Restaurant}, {reviewsFromDatabase[i].Review} - By: {reviewsFromDatabase[i].Author}");
                 }
 
                 Console.Write("Enter the number of the review you want to delete:\n");
 
+                // Konverterar input från användaren till integer och kollar så att den är minst 1 och som högst den största lagrade id-siffran i databasen
                 if (int.TryParse(Console.ReadLine(), out int reviewNumber) && reviewNumber >= 1 && reviewNumber <= reviewsFromDatabase.Count)
                 {
-                    int reviewIdToDelete = reviewsFromDatabase[reviewNumber - 1].Id;
+                    int reviewIdToDelete = reviewsFromDatabase[reviewNumber - 1].Id; // Eftersom listan räknar som en array måste vi lägga till -1 för att få rätt val från användaren
 
                     string deleteQuery = "DELETE FROM Reviews WHERE Id = @ReviewId";
                     using (SQLiteCommand deleteCommand = new SQLiteCommand(deleteQuery, connection))
                     {
+                        // Utför SQL frågan med valt recensions-id att radera från databasen
                         deleteCommand.Parameters.AddWithValue("@ReviewId", reviewIdToDelete);
                         deleteCommand.ExecuteNonQuery();
                     }
@@ -460,6 +444,7 @@ class Program
                 }
                 else
                 {
+                    // Felmeddelande om id-t inte finns i databasen
                     Console.WriteLine("Invalid choice. Please enter a valid number.\n");
                 }
 
