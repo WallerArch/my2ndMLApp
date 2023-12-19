@@ -224,10 +224,6 @@ class Program
                                 }
                             }
                         }
-                        else if (userInput.Equals("B", StringComparison.OrdinalIgnoreCase)) //Om användaren anger B skickas den bakåt i programmet
-                        {
-                            return;
-                        }
                         else
                         {
                             Console.WriteLine("Invalid choice. Please enter a valid number.");
