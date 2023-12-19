@@ -193,9 +193,10 @@ class Program
                         {
                             Console.WriteLine($"{i + 1}. {uniqueRestaurants[i]}");
                         }
-
-                        // Användaren får här välja en av restaurangerna
-                        Console.Write("\nEnter the number of the restaurant to view reviews (or press 'B' to go back): ");
+                        do
+                        {
+                            // Användaren får här välja en av restaurangerna
+                            Console.Write("\nEnter the number of the restaurant to view reviews (or press 'B' to go back): ");
                         string userInput = Console.ReadLine();
 
                         //Läser input som integer
@@ -231,13 +232,13 @@ class Program
                         {
                             Console.WriteLine("Invalid choice. Please enter a valid number.");
                         }
+                            Console.WriteLine("\nPress any key to enter a number again or press escape to return to the main menu.\n");
+                        } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
                     }
                 }
             }
         }
-
-        Console.WriteLine("\nPress any key to return.");
-        Console.ReadKey();
+        return;
     }
 
     //Funktion för att hämta ut specifik skribents recensioner
@@ -274,60 +275,68 @@ class Program
                             Console.WriteLine($"{i + 1}. {uniqueAuthors[i]}");
                         }
 
-                        Console.Write("\nEnter the number of the author to view reviews (or press 'B' to go back): ");
-                        string userInput = Console.ReadLine();
-
-                        if (int.TryParse(userInput, out int choice) && choice >= 1 && choice <= uniqueAuthors.Count)
+                        do
                         {
-                            string chosenAuthor = uniqueAuthors[choice - 1];
+                            Console.Write("\nEnter the number of the author to view reviews: ");
+                            string userInput = Console.ReadLine();
 
-                            // Hämtar ut skribentens recensioner
-                            string reviewsQuery = $"SELECT * FROM Reviews WHERE Author = @Author";
-                            using (SQLiteCommand reviewsCommand = new SQLiteCommand(reviewsQuery, connection))
+                            if (int.TryParse(userInput, out int choice) && choice >= 1 && choice <= uniqueAuthors.Count)
                             {
-                                reviewsCommand.Parameters.AddWithValue("@Author", chosenAuthor); // Anger just den valda skribenten till SQL-frågan
+                                string chosenAuthor = uniqueAuthors[choice - 1];
 
-                                using (SQLiteDataReader reviewsReader = reviewsCommand.ExecuteReader())
+                                // Hämtar ut skribentens recensioner
+                                string reviewsQuery = $"SELECT * FROM Reviews WHERE Author = @Author";
+                                using (SQLiteCommand reviewsCommand = new SQLiteCommand(reviewsQuery, connection))
                                 {
-                                    Console.Clear();
-                                    Console.WriteLine($"Reviews by {chosenAuthor}:");
+                                    reviewsCommand.Parameters.AddWithValue("@Author", chosenAuthor); // Anger just den valda skribenten till SQL-frågan
 
-                                    while (reviewsReader.Read()) // Skriver ut skribentens recensioner
+                                    using (SQLiteDataReader reviewsReader = reviewsCommand.ExecuteReader())
                                     {
-                                        Console.WriteLine($"{reviewsReader["Author"]} was at {reviewsReader["Restaurant"]} and says: {reviewsReader["Review"]} - Sentiment: {reviewsReader["Sentiment"]}");
+                                        Console.Clear();
+                                        Console.WriteLine($"Reviews by {chosenAuthor}:");
+
+                                        while (reviewsReader.Read()) // Skriver ut skribentens recensioner
+                                        {
+                                            Console.WriteLine($"{reviewsReader["Author"]} was at {reviewsReader["Restaurant"]} and says: {reviewsReader["Review"]} - Sentiment: {reviewsReader["Sentiment"]}");
+                                        }
                                     }
                                 }
                             }
-                        }
-                        else if (userInput.Equals("B", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return; //Om användaren anger B skickas den bakåt i programmet
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid choice. Please enter a valid number.");
-                        }
+                            else
+                            {
+                                Console.WriteLine("Invalid choice. Please enter a valid number.");
+                            }
+
+                            Console.WriteLine("\nPress any key to enter a number again or press escape to return to the main menu.\n");
+                        } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
                     }
                 }
             }
         }
-
-        Console.WriteLine("\nPress any key to return.");
-        Console.ReadKey();
+        return;
     }
+
 
     // Funktion för att skriva en ny recension
     static void WriteReview()
     {
-        Console.Clear();
-
-        Console.WriteLine("Write a new restaurant review:");
-
-        Console.WriteLine("Your review:");
-        string userReview = Console.ReadLine();
-
-        if (!string.IsNullOrWhiteSpace(userReview))
+        do
         {
+            Console.Clear();
+
+            Console.WriteLine("Write a new restaurant review:");
+
+            Console.WriteLine("Your review:");
+            string userReview;
+            do
+            {
+                userReview = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(userReview))
+                {
+                    Console.WriteLine("Review cannot be empty. Please try again.");
+                }
+            } while (string.IsNullOrWhiteSpace(userReview));
+
             var sampleData = new SentimentModel.ModelInput()
             {
                 Col0 = userReview
@@ -339,10 +348,26 @@ class Program
             Console.WriteLine($"\nSentiment Analysis Result: {sentiment}"); // Skriver ut resultatet till skärmen
 
             Console.WriteLine("Your name:");
-            string userName = Console.ReadLine();
+            string userName;
+            do
+            {
+                userName = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(userName))
+                {
+                    Console.WriteLine("Name cannot be empty. Please try again.");
+                }
+            } while (string.IsNullOrWhiteSpace(userName));
 
             Console.WriteLine("Restaurant you visited:");
-            string reviewedRestaurant = Console.ReadLine();
+            string reviewedRestaurant;
+            do
+            {
+                reviewedRestaurant = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(reviewedRestaurant))
+                {
+                    Console.WriteLine("Restaurant name cannot be empty. Please try again.");
+                }
+            } while (string.IsNullOrWhiteSpace(reviewedRestaurant));
 
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
@@ -361,14 +386,11 @@ class Program
             }
 
             Console.WriteLine("Review added successfully.");
-            Console.WriteLine("\nPress any key to write another review or press backspace to return to the main menu.\n");
-        }
-        else
-        {
-            Console.WriteLine("Review cannot be empty. Please try again.");
-            Console.WriteLine("\nPress any key to write another review or press backspace to return to the main menu.\n");
-        }
+            Console.WriteLine("\nPress any key to write another review or press escape to return to the main menu.\n");
+        } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
     }
+
+
 
     // Funktion för att ta bort en vald recension
     static void DeleteReview()
@@ -448,8 +470,8 @@ class Program
                     Console.WriteLine("Invalid choice. Please enter a valid number.\n");
                 }
 
-                Console.WriteLine("Press any key to enter a number again or press backspace to return to the main menu.\n");
-            } while (Console.ReadKey(true).Key != ConsoleKey.Backspace);
+                Console.WriteLine("Press any key to enter a number again or press escape to return to the main menu.\n");
+            } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
         }
     }
 }
