@@ -196,7 +196,7 @@ class Program
                         do
                         {
                             // Användaren får här välja en av restaurangerna
-                            Console.Write("\nEnter the number of the restaurant to view reviews (or press 'B' to go back): ");
+                            Console.Write("\nEnter the number of the restaurant to view reviews: ");
                         string userInput = Console.ReadLine();
 
                         //Läser input som integer
