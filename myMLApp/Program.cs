@@ -334,7 +334,12 @@ class Program
                 if (string.IsNullOrWhiteSpace(userReview))
                 {
                     Console.WriteLine("Review cannot be empty. Please try again.");
+                    if (Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    {
+                        return;
+                    }
                 }
+
             } while (string.IsNullOrWhiteSpace(userReview));
 
             var sampleData = new SentimentModel.ModelInput()
@@ -342,10 +347,10 @@ class Program
                 Col0 = userReview
             };
 
-            var result = SentimentModel.Predict(sampleData); // Skickar skribentens recension till min ML för bedömning
-            var sentiment = result.PredictedLabel == 1 ? "Positive" : "Negative"; // Om det är positivt blir svaret "Positive", annars "Negative"
+            var result = SentimentModel.Predict(sampleData);
+            var sentiment = result.PredictedLabel == 1 ? "Positive" : "Negative";
 
-            Console.WriteLine($"\nSentiment Analysis Result: {sentiment}"); // Skriver ut resultatet till skärmen
+            Console.WriteLine($"\nSentiment Analysis Result: {sentiment}");
 
             Console.WriteLine("Your name:");
             string userName;
@@ -355,6 +360,10 @@ class Program
                 if (string.IsNullOrWhiteSpace(userName))
                 {
                     Console.WriteLine("Name cannot be empty. Please try again.");
+                    if (Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    {
+                        return;
+                    }
                 }
             } while (string.IsNullOrWhiteSpace(userName));
 
@@ -366,13 +375,16 @@ class Program
                 if (string.IsNullOrWhiteSpace(reviewedRestaurant))
                 {
                     Console.WriteLine("Restaurant name cannot be empty. Please try again.");
+                    if (Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    {
+                        return;
+                    }
                 }
             } while (string.IsNullOrWhiteSpace(reviewedRestaurant));
 
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                // Skickar in det skribenten skrev till databasen
                 string insertQuery = "INSERT INTO Reviews (Review, Author, Restaurant, Sentiment) VALUES (@Review, @Author, @Restaurant, @Sentiment)";
                 using (SQLiteCommand insertCommand = new SQLiteCommand(insertQuery, connection))
                 {
@@ -391,9 +403,8 @@ class Program
     }
 
 
-
-    // Funktion för att ta bort en vald recension
-    static void DeleteReview()
+        // Funktion för att ta bort en vald recension
+        static void DeleteReview()
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
         {
@@ -447,7 +458,7 @@ class Program
                     Console.WriteLine($"{i + 1}. {reviewsFromDatabase[i].Restaurant}, {reviewsFromDatabase[i].Review} - By: {reviewsFromDatabase[i].Author}");
                 }
 
-                Console.Write("Enter the number of the review you want to delete:\n");
+                Console.Write("\nEnter the number of the review you want to delete:");
 
                 // Konverterar input från användaren till integer och kollar så att den är minst 1 och som högst den största lagrade id-siffran i databasen
                 if (int.TryParse(Console.ReadLine(), out int reviewNumber) && reviewNumber >= 1 && reviewNumber <= reviewsFromDatabase.Count)
