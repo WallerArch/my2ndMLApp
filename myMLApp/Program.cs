@@ -1,4 +1,5 @@
 ﻿using System.Data.SQLite;
+using System.Diagnostics;
 using MyMLApp; // Hämtar in min MLs namespace så den kan användas till bedömningar
 
 class RestaurantReview
@@ -329,7 +330,7 @@ class Program
                 userReview = Console.ReadLine();
                 if (string.IsNullOrWhiteSpace(userReview))
                 {
-                    Console.WriteLine("Review cannot be empty. Please try again.");
+                    Console.WriteLine("Review cannot be empty. Please try again or press escape to return to the main menu.\n");
                     if (Console.ReadKey(true).Key == ConsoleKey.Escape)
                     {
                         return;
